@@ -1,0 +1,186 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Pragma"  content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache">
+<title>迅雷离线下载，让下载飞起来</title>
+<link rel="stylesheet" rev="stylesheet" type="text/css" media="all" href="../150/css/lx_log.css?154"  />
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+<script>
+//----------------
+var G_PAGE = 'login_web';
+//----------------
+</script>
+<script type="text/javascript">document.domain="xunlei.com";</script>
+<script type="text/javascript" src="../js/global.js"></script>
+<script type="text/javascript" src="../js/common.js?153"></script>
+<script type="text/javascript" src="../js/login.js?154"></script>
+<script type="text/javascript" src="../150/js/swfobject.js?1.4.8"></script>
+
+<script>
+if (in_xl==1) {
+	(function(){
+		function getParameter(parameter,url) {
+			return isNull(url.match(new RegExp("[?#&]"+parameter+"=(.*?)(?:[#&]|$)", "i"))) ? "" : RegExp.$1;
+		}
+		var $P = function(parameter, url){
+			url = url || window.location.href;
+			return getParameter(parameter, url);
+		};
+		if($P('error')){
+			top.location = 'http://lixian.vip.xunlei.com/xunlei_task1.html?error='+$P('error');
+		}
+		else
+			top.location = 'http://lixian.vip.xunlei.com/xunlei_task1.html';
+	})();
+}
+
+var FL=(function(){
+	var has=0,fd='flash_tea',fd2='flash_tea2',fd3='flash_tea3',fd4='flash_tea4';
+	function _$(id){
+		return document.getElementById(id);
+	}
+	return {
+				has:0,
+				show:function(){
+					//if(!has){
+						has=1;
+						swfobject.embedSWF("/150/flash/flash_show.swf", "flash_tea", "466", "262", "9.0.0", "expressInstall.swf"); 
+					//}
+					_$(fd).style.display='block';
+					_$(fd3).style.display='block';
+					_$(fd4).style.display='block';
+					_$(fd2).style.display='none';
+				},
+				hide:function(){
+					//_$(fd).innerHTML='';
+					_$(fd).style.display='none';
+					_$(fd3).style.display='none';
+					_$(fd4).style.display='none';
+					_$(fd2).style.display='block';
+				}
+			};
+})();
+//set_lx_refer();
+</script>
+</head>
+<body id="d_body">
+<div class="fl_bg" id="flash_tea4" style="display:none"></div>
+<div id="common_notice_layer"></div>
+<div class="wp">
+<div class="header">
+	<h1><a href="#" title="迅雷离线下载">迅雷离线下载 lixian.xunlei.com</a></h1>
+	<div class="banner"><a href="http://vip.xunlei.com/index.html" target="_blank" title="会员官网">会员官网</a> <a href="/help.html" target="_blank" title="帮助">帮助</a></div>
+</div>
+
+<div class="main">
+          <div class="con">
+			<div class="flash_box">
+               <div class="flash_boxbg" id='flash_tea2'>
+               <h2 class="thid">离线下载为您提供更快更稳定的下载体验，您只需要提交任务链接，云端完成后，便可高速下载到您的机器上。</h2>
+               <ol class="thid">
+                  <li>加速下载冷门资源</li>
+                  <li>稳定提升下载速度</li>
+                  <li>快速解决网络受限</li>
+                  <li>减少挂机省电省力</li>
+               </ol>               
+                   <a href="#" onclick="send_stats('http://lixian.vip.xunlei.com/func/weblesson');FL.show();return false;" class="play_link" title="观看使用教程">观看使用教程</a>
+               </div>
+
+			   <div class="flash" style="display: none" id='flash_tea'></div>
+			   <div class="closeflash" id="flash_tea3" style='display:none;'><a href="#" onclick="FL.hide();return false;" title="关闭演示">关闭演示</a></div>
+			  </div><!--div.flash_box-->
+          </div><!-- /con -->
+
+          <div class="sider">
+		          <div class="login_box" id="userinfro_leftdiv" style="display: block">
+                    <h3>会员登录</h3>
+                    <fieldset>
+					<form id="loginform" action="http://login.xunlei.com/sec2login/" method="post">
+					
+                    <legend>登录</legend>
+					<ul>
+			        	<li><label>帐号：</label><input type="text" tabindex="1" autocomplete="off"  id="u" name="u" value="" class="intxt" /></li>
+			        	<li><label>密码：</label><input id="p_show" type="password" type="password" value="" class="intxt" tabindex="2" /></li>
+                        <li style="display: none" id="verifycodePanel"><label>验证码：</label><input name="verifycode" id="verifycode" tabindex="3" maxlength="4" type="text" value="" class="intxt" style="width:55px" autocomplete="off" /><img id="verify_code1" alt="验证码" style="vertical-align: middle;padding-bottom:3px;margin:0 5px" /><a onclick="getVerifyCode(1);return false;" href="#">换一张</a></li>
+                        <li class="regme"><label>&nbsp;</label><input name="login_enable" id="login_enable" value="1" type="checkbox" /> 记住我</li>
+                        <li class="btn"><label>&nbsp;</label><button tabindex="3" type="button" id="button_submit4reg" onclick="if(Login.validateInput())submitForm();" class="btnlog" title="登录">登 录</button><a href="#" onclick="send_stats('http://lixian.xunlei.com/func/reglnk?ref=IN_01');go_refer_url('http://i.xunlei.com/?redirecturl=regist&referfrom=LX_022')" title="注册" class="log_reg">注册</a></li>
+                        <li class="regme"><label>&nbsp;</label><a href="http://aq.xunlei.com/?redirecturl=forgot_digit" target="_blank" class="" title="忘记帐号">忘记帐号</a>| <a href="http://aq.xunlei.com/?redirecturl=forgot_pwd" target="_blank" class="" title="忘记密码？">忘记密码？</a></li>
+					</ul>
+					<input id="login_hour" name="login_hour" type="hidden" value="720" />
+					<input id="u1" name="u1" type="hidden" value="" />
+					<input id="in_xl" name="in_xl" type="hidden" value="0" />
+					</form>
+                    </fieldset>
+                    <a href="#" onclick="send_stats('http://lixian.xunlei.com/func/bevip?ref=IN_01');go_refer_url('http://dynamic.vip.xunlei.com/paycenter/index/?referfrom=LX_022');return false;" title="立即开通" id="open_now_id" class="open">立即开通</a>
+					<div class="w_tips" id="loginform_msg" style="display:none"></div>
+					<!--p class="log_viptip">目前已对迅雷帐号18级以上的用户免费开放离线下载部分功能，会员用户特权全线升级！</p-->
+					<a href="http://vip.xunlei.com/" target="_blank" class="know_hy" title="了解迅雷会员">了解迅雷会员</a>
+		          </div>
+                  
+		          <div class="login_box" id="gdrive_info" style="display: none">
+                    <h3>会员登录</h3>
+                    <div class="no_vip">
+                    <p class="no_vip_tip">下午好，丁丁蛋蛋娃　　<a href="#" class="" title="退出">[退出]</a></p>
+                    
+                    </div>
+		          </div>
+          </div>
+</div>
+<div class="footer">
+    <p>Copyright 2003-2011,迅雷网络版权所有 <a href="http://www.xunlei.com/copyright.html" target="_blank">著作权保护声明</a></p>
+</div>
+</div>
+</body>
+</html>
+<script>Login.checkBeforeLogin();Login.checkAutoVerify();</script>
+<script>initLogininfo();</script>
+<script type='text/javascript' src='http://lixian.vip.xunlei.com/js/yellow.js'></script>
+<script>
+var xl_gsid='GSID_001_001_001_034';
+var __xltj_domain="vip.xunlei.com";
+var ucid = getCookie("ucid");
+function __xltj_getCustomerParameter(){
+    if( !isUndef(ucid) && ucid != "" ) {
+		return "loginFromFlag=union*ucid="+ucid;
+    }
+    return "";
+}
+</script>
+<script src='http://res.stat.xunlei.com/pv.js' charset='utf-8' ></script>
+
+<script>
+(function(){
+	function getParameter(parameter,url) {
+		return isNull(url.match(new RegExp("[?#&]"+parameter+"=(.*?)(?:[#&]|$)", "i"))) ? "" : RegExp.$1;
+	}
+	var $P = function(parameter, url){
+		url = url || window.location.href;
+		return getParameter(parameter, url);
+	};
+	var e=$P('error');
+	var errors={
+		1:'<p>账号服务器异常，请重新登录</p>',
+		2:'<p>离线服务器异常，请重新登录</p>',
+		3:'<p>帐号异常而被冻结，<a href="http://helpbbs.xunlei.com/read.php?tid=415915" target="_blank">详情</a></p>',
+		4:'<p>您已长时间无操作，请重新登录</p>'
+	};
+	var tj={
+		1:'http://lixian.xunlei.com/func/loginexc?reson=checksession',
+		2:'http://lixian.xunlei.com/func/loginexc?reson=apperr'
+	};
+	if(e!=="" && typeof(errors[e])!='undefined'){
+		$('loginform_msg').innerHTML=errors[e];
+		$('loginform_msg').style.display='';
+		if(typeof tj[e]!='undefined')send_stats(tj[e]);
+		setTimeout(function(){
+			$('loginform_msg').style.display='none';
+			$('loginform_msg').innerHTML='';
+		},3*1000);
+	}
+})();
+
+
+</script>
