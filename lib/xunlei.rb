@@ -1,5 +1,3 @@
 require "xunlei/version"
+require "xunlei/engine"
 
-module Xunlei
-  # Your code goes here...
-end

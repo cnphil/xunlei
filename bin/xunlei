@@ -1,0 +1,199 @@
+#!/usr/bin/env ruby
+
+require "xunlei"
+require "yaml"
+require "commander/import"
+
+program :name, "Xunlei"
+program :version, Xunlei::VERSION
+program :description, "lixian.vip.xunlei.com utility script"
+
+def filter_files(options = nil)
+  files = []
+  YAML.load_file(xunlei_tasks_path).each do |file|
+    if !options.only.nil?
+      files << file if file[:name] =~ /#{options.only}/i
+    elsif !options.except.nil?
+      files << file unless file[:name] =~ /#{options.except}/i
+    else
+      files << file
+    end
+  end
+  files
+end
+
+def do_dump_cookies(c)
+  c.option "--driver DRIVER", String, "use a different webdriver (e.g. firefox). default is chrome"
+  c.action do |args, options|
+    options.default :driver => "chrome"
+    
+    check_for_config_files
+    check_for_chromedriver
+    credentials = YAML.load_file(xunlei_credential_file_path)
+    engine = Xunlei::Engine.new(credentials[:username], credentials[:password], options.driver.downcase.to_sym)
+
+    File.open(xunlei_cookies_path, "w") do |file|
+      engine.dump_cookies.each do |line|
+        file.write(line)
+      end
+    end
+
+    yield(engine) if block_given?
+
+    engine.stop
+  end
+end
+
+def xunlei_cookies_path
+  File.join(xunlei_folder_path, "cookies.txt")
+end
+
+def xunlei_tasks_path
+  File.join(xunlei_folder_path, "all_tasks.yml")
+end
+
+def xunlei_credential_file_path
+  File.join(xunlei_folder_path, "credentials.yml")
+end
+
+def xunlei_folder_name
+  "~/.xunlei"
+end
+
+def xunlei_folder_path
+  File.expand_path(xunlei_folder_name)
+end
+
+def xunlei_folder_exists?
+  Dir.exists?(xunlei_folder_path)
+end
+
+def credential_file_exists?
+  File.exists?(xunlei_credential_file_path)
+end
+
+def create_xunlei_folder
+  Dir.mkdir(xunlei_folder_path)
+end
+
+def ask_for_credentials
+  puts "#{xunlei_credential_file_path} not exists. Now creating one."
+  puts "*** WARNING: your USERNAME and PASSWORD will be stored as PLAINTEXT at #{xunlei_credential_file_path} ***"
+    
+  username = ask("Username: ")
+  password = ask("Password: ") { |q| q.echo = "*" }
+  File.open(xunlei_credential_file_path, "w") do |file|
+    file.write({ :username => username, :password => password }.to_yaml)
+  end
+  
+  puts "#{xunlei_credential_file_path} successfully created."
+end
+
+def check_for_credentials
+  ask_for_credentials unless credential_file_exists?
+end
+
+def chromedriver_zip_name
+  "chromedriver_mac.zip"
+end
+
+def check_for_chromedriver
+  unless system("which chromedriver > /dev/null 2>&1")
+    puts "chromedriver not found in your PATH"
+    if agree("Would you like me to try download it for you? (yes or no)")
+      if system("wget 'http://chromium.googlecode.com/files/chromedriver_mac_16.0.902.0.zip' -O #{chromedriver_zip_name}")
+        if system("unzip #{chromedriver_zip_name}")
+          puts "moving chromedriver to /usr/local/bin ..."
+          system("mv -v chromedriver /usr/local/bin")
+          
+          puts "deleting temporary files..."
+          system("rm -v #{chromedriver_zip_name}")
+        else
+          puts "`unzip` not found in your PATH. Try manually unzip #{chromedriver_zip_name} and move it to /usr/local/bin"
+          exit
+        end
+      end
+    else
+      puts "OK. You can download it manually here: http://code.google.com/p/chromium/downloads"
+      exit
+    end
+  end
+end
+
+def check_for_config_files
+  create_xunlei_folder unless xunlei_folder_exists?
+  check_for_credentials
+end
+
+command :dump_tasks do |c|
+  c.syntax= "dump_tasks"
+  c.description = "dump all files to #{xunlei_tasks_path}"
+  
+  do_dump_cookies(c) do |engine|
+    tasks = engine.dump_tasks
+    
+    File.open(xunlei_tasks_path, "w") do |file|
+      file.write(tasks.to_yaml)
+    end
+    
+    puts "Successfully dumped following tasks:"
+    puts
+    tasks.each do |task|
+      puts task[:name]
+    end
+  end
+end
+
+command :dump_cookies do |c|
+  c.syntax = "dump_cookies"
+  c.description = "dump cookies to #{xunlei_cookies_path}"
+  
+  do_dump_cookies(c)
+end
+
+command :download do |c|
+  c.syntax = "download"
+  c.description = "download all files in #{xunlei_tasks_path}"
+  c.option "--only PATTERN", String, "only download files which names include PATTERN"
+  c.option "--except PATTERN", String, "do not download files which names include PATTERN"
+  
+  c.action do |args, options|
+    options.default :only => nil, :except => nil
+    
+    files = filter_files(options)
+    
+    if files.empty?
+      puts "Nothing to do."
+    else
+      puts "\nAbout to download following files:"
+      puts
+      filter_files(options).each do |file|
+        puts file[:name]
+      end
+      
+      if agree("\nConfirm? (yes or no)")
+        filter_files(options).each do |file|
+          cmd = "wget --load-cookies=#{xunlei_cookies_path} '#{file[:url]}' -c -O '#{file[:name]}'"
+          break unless system(cmd)
+        end
+      end
+    end
+  end
+end
+
+command :show do |c|
+  c.syntax = "show"
+  c.description = "show files in #{xunlei_tasks_path}"
+  
+  c.action do |args, options|
+    options.default :only => nil, :except => nil
+    puts "You have following files in your #{xunlei_tasks_path}:"
+    puts
+    filter_files(options).each do |file|
+      puts file[:name]
+    end
+  end
+end
+
+alias_command :down, :download
+alias_command :dump, :dump_tasks

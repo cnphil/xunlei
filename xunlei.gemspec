@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Forrest Ye"]
   s.email       = ["afu@forresty.com"]
   s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.summary     = %q{A browser script to access lixian.vip.xunlei.com tasks automatically}
+  s.description = %q{A browser script to access lixian.vip.xunlei.com tasks automatically}
 
   s.rubyforge_project = "xunlei"
 
@@ -18,10 +18,8 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_development_dependency "rspec", "~> 2.6"
-  s.add_development_dependency "fakeweb"
-  s.add_development_dependency "simplecov"
   s.add_development_dependency "rake"
   
-  s.add_runtime_dependency "nokogiri"
+  s.add_runtime_dependency "watir-webdriver"
+  s.add_runtime_dependency "commander"
 end
