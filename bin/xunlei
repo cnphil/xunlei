@@ -195,5 +195,13 @@ command :show do |c|
   end
 end
 
+command :config do |c|
+  c.syntax = "config"
+  c.description = "open #{xunlei_folder_name} folder"
+  c.action do |args, options|
+    system("open #{xunlei_folder_name}")
+  end
+end
+
 alias_command :down, :download
 alias_command :dump, :dump_tasks
