@@ -141,6 +141,7 @@ command :dump_tasks do |c|
     tasks.each do |task|
       puts task[:name]
     end
+    puts
   end
 end
 

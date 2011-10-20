@@ -85,7 +85,7 @@ module Xunlei
         task_div.click
         task_div.a(:class => "rwbtn ic_down").wait_until_present
 
-        if task_div.a(:class => "rwbtn ic_open").present?
+        if task_div.div(:class => "w03img").imgs.first.src == "http://cloud.vip.xunlei.com/160/img/icon_type/tpimg_bt.png"
           task_files += process_bt_task(task_div)
         else
           task_files << process_normal_task(task_div)
