@@ -204,5 +204,21 @@ command :config do |c|
   end
 end
 
+command :google do |c|
+  c.syntax = "google KEYWORD"
+  c.description = "google for ed2k links using given KEYWORD"
+  c.option "--with OPTIONS", String, "include additional info when Googling"
+  c.action do |args, options|
+    options.default :with => nil
+    puts "Searching the web for #{args.join(" ")}..."
+    puts
+    search = Xunlei::Search.new
+    links = search.google(args, options.with)
+    puts
+    puts "#{links.count} links found."
+  end
+end
+
 alias_command :down, :download
 alias_command :dump, :dump_tasks
+alias_command :search, :google

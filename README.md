@@ -49,6 +49,10 @@ Download files according to pattern in file names
 
     xunlei download --only matrix
     xunlei download --except bourne
+    
+Google for ed2k and magnet links
+
+    xunlei google Repulsion --with 720p
 
 Pass --help to see more tasks and options
 

@@ -1,6 +1,4 @@
 require "simplecov"
 SimpleCov.start
 
-require "fakeweb"
-
-FakeWeb.allow_net_connect = false
+Dir["./lib/xunlei/*.rb"].each { |file| require file }
