@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 
 require "xunlei"
-# require File.expand_path("lib/xunlei/version.rb")
-# require File.expand_path("lib/xunlei/engine.rb")
 require "yaml"
 require "commander/import"
 
@@ -12,6 +10,7 @@ program :description, "lixian.vip.xunlei.com utility script"
 
 def filter_files(options = nil)
   files = []
+#puts "\"#{options.only}\""
   YAML.load_file(xunlei_tasks_path).each do |file|
     if !options.only.nil?
       files << file if file[:name] =~ /#{options.only}/i
@@ -28,8 +27,8 @@ def do_dump_cookies(c)
   c.option "--driver DRIVER", String, "use a different webdriver (e.g. firefox). default is chrome"
   c.action do |args, options|
     options.default :driver => "chrome"
-    
-    check_for_config_files
+    $addargv = args.join("")
+	 check_for_config_files
     check_for_chromedriver
     credentials = YAML.load_file(xunlei_credential_file_path)
     engine = Xunlei::Engine.new(credentials[:username], credentials[:password], options.driver.downcase.to_sym)
@@ -47,9 +46,8 @@ def do_dump_cookies(c)
 end
 
 def all_downloaded_tasks
-  system("touch #{xunlei_downloaded_tasks_path}")
-  
-  YAML.load_file(xunlei_downloaded_tasks_path) || []
+	system("touch #{xunlei_downloaded_tasks_path}") 	
+	YAML.load_file(xunlei_downloaded_tasks_path) || []
 end
 
 def xunlei_cookies_path
@@ -65,7 +63,7 @@ def xunlei_credential_file_path
 end
 
 def xunlei_downloaded_tasks_path
-  File.join(xunlei_folder_path, "downloaded.yml")
+	File.join(xunlei_folder_path, "downloaded.yml")
 end
 
 def xunlei_folder_name
@@ -138,18 +136,18 @@ def check_for_config_files
 end
 
 def move_to_downloaded_file(task)
-  puts "#{task[:name]} successfully downloaded."
-  downloaded = all_downloaded_tasks
-  downloaded << task
-  File.open(xunlei_downloaded_tasks_path, "w") do |file|
-    file.write(downloaded.to_yaml)
-  end
-  
-  all_tasks = YAML.load_file(xunlei_tasks_path)
-  all_tasks.delete(task)
-  File.open(xunlei_tasks_path, "w") do |file|
-    file.write(all_tasks.to_yaml)
-  end
+	puts "#{task[:name]} successfully downloaded."
+	downloaded = all_downloaded_tasks
+	downloaded << task
+	File.open(xunlei_downloaded_tasks_path, "w") do |file|
+		file.write(downloaded.to_yaml)
+	end
+		    
+	all_tasks = YAML.load_file(xunlei_tasks_path)
+	all_tasks.delete(task)
+	File.open(xunlei_tasks_path, "w") do |file|
+		file.write(all_tasks.to_yaml)
+	end
 end
 
 command :dump_tasks do |c|
@@ -157,10 +155,11 @@ command :dump_tasks do |c|
   c.description = "dump all files to #{xunlei_tasks_path}"
   
   do_dump_cookies(c) do |engine|
+	 puts "Dumping tasks..."
     tasks = engine.dump_tasks
-    current_downloaded_tasks = all_downloaded_tasks & tasks
-    tasks -= all_downloaded_tasks
-    
+	 current_downloaded_tasks = all_downloaded_tasks & tasks
+	 tasks -= all_downloaded_tasks
+
     File.open(xunlei_tasks_path, "w") do |file|
       file.write(tasks.to_yaml)
     end
@@ -171,16 +170,20 @@ command :dump_tasks do |c|
       puts task[:name]
     end
     puts
-    unless current_downloaded_tasks.empty?
-      puts "Finished downloads:"
-      puts
-      current_downloaded_tasks.each do |task|
-        puts task[:name]
-      end
-      puts
-    end
   end
 end
+
+#phil - start stamp
+
+command :add do |c, returnargv|
+  c.syntax= "add KEYWORD"
+  c.description = "add new task(s)."
+  
+  do_dump_cookies(c) do |engine|
+	 tasks = engine.add_task($addargv)
+  end
+end
+#phil - end stamp
 
 command :dump_cookies do |c|
   c.syntax = "dump_cookies"
@@ -211,12 +214,8 @@ command :download do |c|
       
       if agree("\nConfirm? (yes or no)")
         filter_files(options).each do |file|
-          cmd = "wget --load-cookies=#{xunlei_cookies_path} '#{file[:url]}' -c -O \"#{file[:name]}\""
-          if system(cmd)
-            move_to_downloaded_file(file)
-          else
-            break
-          end
+          cmd = "wget_with_proxy --load-cookies=#{xunlei_cookies_path} '#{file[:url]}' -c -O '#{file[:name]}'"
+          break unless system(cmd)
         end
       end
     end
@@ -248,16 +247,15 @@ end
 command :google do |c|
   c.syntax = "google KEYWORD"
   c.description = "google for ed2k links using given KEYWORD"
-  c.option "--with WORDS", String, "include additional info when Googling"
-  c.option "--without WORDS", String, "exclude additional info when Googling"
+  c.option "--with OPTIONS", String, "include additional info when Googling"
   c.action do |args, options|
-    options.default :with => nil, :without => nil
+    options.default :with => nil
     puts "Searching the web for #{args.join(" ")}..."
     puts
     search = Xunlei::Search.new
-    links = search.google(args, options)
+    links = search.google(args, options.with)
     puts
-    puts "#{links.count} links found."
+#puts "#{links.count} links found."
   end
 end
 
