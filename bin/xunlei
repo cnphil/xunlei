@@ -139,8 +139,9 @@ end
 
 def move_to_downloaded_file(task)
   puts "#{task[:name]} successfully downloaded."
+  
   downloaded = all_downloaded_tasks
-  downloaded << task
+  downloaded << task[:name]
   File.open(xunlei_downloaded_tasks_path, "w") do |file|
     file.write(downloaded.to_yaml)
   end
@@ -152,14 +153,38 @@ def move_to_downloaded_file(task)
   end
 end
 
+def total_size(file_sizes)
+  total_megabytes = 0
+  
+  file_sizes.each do |file_size|
+    if file_size =~ /G/
+      total_megabytes += 1000 * file_size.to_f
+    else
+      total_megabytes += file_size.to_f
+    end
+  end
+  
+  total_megabytes
+end
+
+def show_files(files)
+  files.each do |file|
+    puts "#{file[:size]}\t#{file[:name]}"
+  end
+  
+  puts
+  puts "Total: #{files.size} files, #{total_size(files.map { |file| file[:size] })} MB (estimated)"
+end
+
 command :dump_tasks do |c|
   c.syntax= "dump_tasks"
   c.description = "dump all files to #{xunlei_tasks_path}"
   
   do_dump_cookies(c) do |engine|
     tasks = engine.dump_tasks
-    current_downloaded_tasks = all_downloaded_tasks & tasks
-    tasks -= all_downloaded_tasks
+    
+    current_downloaded_tasks = all_downloaded_tasks & tasks.map { |task| task[:name] }
+    tasks.reject! { |task| current_downloaded_tasks.include?(task[:name]) }
     
     File.open(xunlei_tasks_path, "w") do |file|
       file.write(tasks.to_yaml)
@@ -167,17 +192,16 @@ command :dump_tasks do |c|
     
     puts "Successfully dumped following tasks:"
     puts
-    tasks.each do |task|
-      puts task[:name]
-    end
+    show_files(tasks)
+    
     puts
+    
     unless current_downloaded_tasks.empty?
-      puts "Finished downloads:"
+      puts "Finished downloads: (you should delete them on website)"
       puts
-      current_downloaded_tasks.each do |task|
-        puts task[:name]
+      current_downloaded_tasks.each do |task_name|
+        puts task_name
       end
-      puts
     end
   end
 end
@@ -231,9 +255,8 @@ command :show do |c|
     options.default :only => nil, :except => nil
     puts "You have following files in your #{xunlei_tasks_path}:"
     puts
-    filter_files(options).each do |file|
-      puts file[:name]
-    end
+    files = filter_files(options)
+    show_files(files)
   end
 end
 

@@ -12,8 +12,7 @@ module Xunlei
     end
     
     def dump_cookies
-      # wait until cookies are ready
-      get_task_list
+      wait_until_all_loaded
       
       cookies = []
       @browser.driver.manage.all_cookies.each do |cookie|
@@ -42,7 +41,7 @@ module Xunlei
       @browser.close
     end
     
-  private  
+  private
     
     def wait_until_all_loaded
       get_task_list
@@ -56,24 +55,16 @@ module Xunlei
     
     def next_page
       next_li = @browser.li(:class => "next")
-      if next_li.present?
-        next_li.as.first.click
-        true
-      else
-        false
-      end
+      
+      return false unless next_li.present?
+      
+      next_li.as.first.click
     end
     
     def process_current_page
-      task_list = get_task_list
-      
-      all_files = []
-
-      task_list.divs(:class => "rw_list").each do |task_div|
+      get_task_list.divs(:class => "rw_list").inject([]) do |all_files, task_div|
         all_files += process_task(task_div)
       end
-
-      all_files
     end
     
     def process_task(task_div)
@@ -104,8 +95,9 @@ module Xunlei
     
     def process_normal_task(task_div)
       normal_task_a = task_div.span(:class => "namelink").as.first
-      normal_task_input = task_div.input(:id => "dl_url" + task_div.id.gsub(/\D+/, ""))
-      { :name => normal_task_a.text.gsub(/'|\\/,""), :url => normal_task_input.value }
+      task_id = task_div.id.gsub(/\D+/, "")
+      normal_task_input = task_div.input(:id => "dl_url" + task_id)
+      { :name => normal_task_a.text.gsub(/'|\\/,""), :url => normal_task_input.value, :size => task_div.span(:id => "size#{task_id}").text }
     end
     
     def process_bt_task(task_div)
@@ -115,9 +107,12 @@ module Xunlei
       folder_list = @browser.div(:id => "rwbox_bt_list")
       folder_list.wait_until_present
       
+      index = 0
       folder_list.spans(:class => "namelink").each do |span|
         s = span.spans.first
-        task_files << { :name => s.title, :url => s.attribute_value('href') }.tap {|s| p s}
+        size = folder_list.input(:id => "bt_size#{index}").attribute_value('value')
+        task_files << { :name => s.title, :url => s.attribute_value('href'), :size => size }
+        index += 1
       end
 
       go_back_from_bt_task
