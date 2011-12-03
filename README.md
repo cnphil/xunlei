@@ -13,16 +13,6 @@ so please make sure you have Google Chrome installed first.
 It can automatically dump task file names and urls as well as browser cookies,
 so that it can delegate to wget to download files for you.
 
-It can handle both normal tasks and BT tasks, and won't complain even if you
-have pages and pages of tasks on http://lixian.vip.xunlei.com
-
-And since it uses wget -c option,
-you don't need to worry about interrupted downloads
-or completely downloaded files been overwritten any more.
-
-Oh, did I mention it also handles Chinese/Japanese/Korean characters
-in file names without any problems?
-
 WARNING:
 it stores your USERNAME and PASSWORD for
 lixian.vip.xunlei.com as PLAINTEXT at ~/.xunlei/credentials.yml
