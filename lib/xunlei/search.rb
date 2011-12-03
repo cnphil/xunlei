@@ -1,5 +1,6 @@
 require "watir-webdriver"
 require "Nokogiri"
+require "uri"
 
 module Xunlei
   class Search
@@ -7,8 +8,11 @@ module Xunlei
       @browser = Watir::Browser.new driver
     end
     
-    def google(keywords, options=nil)
-      @browser.goto "http://www.google.com/search?q=#{[keywords, options, "ed2k"].flatten.join("+")}"
+    def google(keywords, options)
+      q = [keywords, options.with, "ed2k"].flatten.join("+")
+      q += "+-" + options.without unless options.without.nil?
+      
+      @browser.goto "http://www.google.com/search?q=#{q}"
       
       @browser.div(:id => "ires").wait_until_present
       
@@ -20,7 +24,8 @@ module Xunlei
         @browser.goto page_link
         doc = Nokogiri::HTML(@browser.html)
         doc.css("a").each do |link|
-          href = link['href']
+          next if link['href'].nil?
+          href = URI.escape(link['href'])
           if href =~ /ed2k:|magnet:/ && !ed2k_links.include?(href)
             puts href
             ed2k_links << href

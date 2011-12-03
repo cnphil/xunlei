@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
 require "xunlei"
+# require File.expand_path("lib/xunlei/version.rb")
+# require File.expand_path("lib/xunlei/engine.rb")
 require "yaml"
 require "commander/import"
 
@@ -44,6 +46,12 @@ def do_dump_cookies(c)
   end
 end
 
+def all_downloaded_tasks
+  system("touch #{xunlei_downloaded_tasks_path}")
+  
+  YAML.load_file(xunlei_downloaded_tasks_path) || []
+end
+
 def xunlei_cookies_path
   File.join(xunlei_folder_path, "cookies.txt")
 end
@@ -54,6 +62,10 @@ end
 
 def xunlei_credential_file_path
   File.join(xunlei_folder_path, "credentials.yml")
+end
+
+def xunlei_downloaded_tasks_path
+  File.join(xunlei_folder_path, "downloaded.yml")
 end
 
 def xunlei_folder_name
@@ -125,12 +137,29 @@ def check_for_config_files
   check_for_credentials
 end
 
+def move_to_downloaded_file(task)
+  puts "#{task[:name]} successfully downloaded."
+  downloaded = all_downloaded_tasks
+  downloaded << task
+  File.open(xunlei_downloaded_tasks_path, "w") do |file|
+    file.write(downloaded.to_yaml)
+  end
+  
+  all_tasks = YAML.load_file(xunlei_tasks_path)
+  all_tasks.delete(task)
+  File.open(xunlei_tasks_path, "w") do |file|
+    file.write(all_tasks.to_yaml)
+  end
+end
+
 command :dump_tasks do |c|
   c.syntax= "dump_tasks"
   c.description = "dump all files to #{xunlei_tasks_path}"
   
   do_dump_cookies(c) do |engine|
     tasks = engine.dump_tasks
+    current_downloaded_tasks = all_downloaded_tasks & tasks
+    tasks -= all_downloaded_tasks
     
     File.open(xunlei_tasks_path, "w") do |file|
       file.write(tasks.to_yaml)
@@ -142,6 +171,14 @@ command :dump_tasks do |c|
       puts task[:name]
     end
     puts
+    unless current_downloaded_tasks.empty?
+      puts "Finished downloads:"
+      puts
+      current_downloaded_tasks.each do |task|
+        puts task[:name]
+      end
+      puts
+    end
   end
 end
 
@@ -174,8 +211,12 @@ command :download do |c|
       
       if agree("\nConfirm? (yes or no)")
         filter_files(options).each do |file|
-          cmd = "wget --load-cookies=#{xunlei_cookies_path} '#{file[:url]}' -c -O '#{file[:name]}'"
-          break unless system(cmd)
+          cmd = "wget --load-cookies=#{xunlei_cookies_path} '#{file[:url]}' -c -O \"#{file[:name]}\""
+          if system(cmd)
+            move_to_downloaded_file(file)
+          else
+            break
+          end
         end
       end
     end
@@ -207,13 +248,14 @@ end
 command :google do |c|
   c.syntax = "google KEYWORD"
   c.description = "google for ed2k links using given KEYWORD"
-  c.option "--with OPTIONS", String, "include additional info when Googling"
+  c.option "--with WORDS", String, "include additional info when Googling"
+  c.option "--without WORDS", String, "exclude additional info when Googling"
   c.action do |args, options|
-    options.default :with => nil
+    options.default :with => nil, :without => nil
     puts "Searching the web for #{args.join(" ")}..."
     puts
     search = Xunlei::Search.new
-    links = search.google(args, options.with)
+    links = search.google(args, options)
     puts
     puts "#{links.count} links found."
   end
