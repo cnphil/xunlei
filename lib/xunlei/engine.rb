@@ -54,6 +54,8 @@ module Xunlei
 #phil end stamp
 
     def dump_tasks
+		@browser.div(:id => 'flash_link').when_present.click
+		wait_until_all_loaded
       all_files = []
       
       begin
@@ -141,6 +143,7 @@ module Xunlei
       
 		folder_list.spans(:class => "namelink").each do |span|
 			s = span.spans.first
+			puts "Got " + s.title
 			task_files << { :name => s.title, :url => s.attribute_value('href') }.tap {|s| p s}
       end
 
