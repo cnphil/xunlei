@@ -9,10 +9,20 @@ module Xunlei
     end
     
     def google(keywords, options)
+      do_google(keywords, options, "http://www.google.com/search?q=", 10)
+    end
+    
+    def google_simplecd(keywords, options)
+      do_google(keywords, options, "http://www.google.com/search?q=site:simplecd.org+", 1)
+    end
+    
+  private
+  
+    def do_google(keywords, options, prefix, limit)
       q = [keywords, options.with, "ed2k"].flatten.join("+")
       q += "+-" + options.without unless options.without.nil?
       
-      @browser.goto "http://www.google.com/search?q=#{q}"
+      @browser.goto "#{prefix}#{q}"
       
       @browser.div(:id => "ires").wait_until_present
       
@@ -20,6 +30,7 @@ module Xunlei
       @browser.lis(:class => "g").each { |li| page_links << li.as.first.href }
       
       ed2k_links = []
+      
       page_links.each do |page_link|
         @browser.goto page_link
         doc = Nokogiri::HTML(@browser.html)
@@ -31,6 +42,9 @@ module Xunlei
             ed2k_links << href
           end
         end
+        
+        limit -= 1
+        break unless limit > 1
       end
       
       @browser.close

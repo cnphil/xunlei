@@ -278,7 +278,7 @@ command :google do |c|
   c.option "--without WORDS", String, "exclude additional info when Googling"
   c.action do |args, options|
     options.default :with => nil, :without => nil
-    puts "Searching the web for #{args.join(" ")}..."
+    puts "Searching the web for '#{args.join(" ")}'..."
     puts
     search = Xunlei::Search.new
     links = search.google(args, options)
@@ -287,6 +287,23 @@ command :google do |c|
   end
 end
 
+command :simplecd do |c|
+  c.syntax = "simplecd KEYWORD"
+  c.description = "search simplecd for ed2k links using given KEYWORD"
+  c.option "--with WORDS", String, "include additional info when searching"
+  c.option "--without WORDS", String, "exclude additional info when searching"
+  c.action do |args, options|
+    options.default :with => nil, :without => nil
+    puts "Searching simplecd.org for '#{args.join(" ")}'..."
+    puts
+    search = Xunlei::Search.new
+    links = search.google_simplecd(args, options)
+    puts
+    puts "#{links.count} links found."
+  end
+end
+
 alias_command :down, :download
 alias_command :dump, :dump_tasks
 alias_command :search, :google
+alias_command :scd, :simplecd
