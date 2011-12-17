@@ -218,23 +218,26 @@ command :download do |c|
   c.description = "download all files in #{xunlei_tasks_path}"
   c.option "--only PATTERN", String, "only download files which names include PATTERN"
   c.option "--except PATTERN", String, "do not download files which names include PATTERN"
+  c.option "--reverse", "download files in reverse order"
   
   c.action do |args, options|
     options.default :only => nil, :except => nil
     
     files = filter_files(options)
     
+    files.reverse! if options.reverse
+    
     if files.empty?
       puts "Nothing to do."
     else
       puts "\nAbout to download following files:"
       puts
-      filter_files(options).each do |file|
+      files.each do |file|
         puts file[:name]
       end
       
       if agree("\nConfirm? (yes or no)")
-        filter_files(options).each do |file|
+        files.each do |file|
           cmd = "wget --load-cookies=#{xunlei_cookies_path} '#{file[:url]}' -c -O \"#{file[:name]}\""
           if system(cmd)
             move_to_downloaded_file(file)
