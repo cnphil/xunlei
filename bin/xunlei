@@ -3,6 +3,7 @@
 require "xunlei"
 # require File.expand_path("lib/xunlei/version.rb")
 # require File.expand_path("lib/xunlei/engine.rb")
+# require File.expand_path("lib/xunlei/search.rb")
 require "yaml"
 require "commander/import"
 
@@ -24,25 +25,29 @@ def filter_files(options = nil)
   files
 end
 
+def execute_dump_action(args, options)
+  options.default :driver => "chrome"
+  
+  check_for_config_files
+  check_for_chromedriver
+  credentials = YAML.load_file(xunlei_credential_file_path)
+  engine = Xunlei::Engine.new(credentials[:username], credentials[:password], options.driver.downcase.to_sym)
+
+  File.open(xunlei_cookies_path, "w") do |file|
+    engine.dump_cookies.each do |line|
+      file.write(line)
+    end
+  end
+
+  yield(engine, args) if block_given?
+
+  engine.stop
+end
+
 def do_dump_cookies(c)
   c.option "--driver DRIVER", String, "use a different webdriver (e.g. firefox). default is chrome"
   c.action do |args, options|
-    options.default :driver => "chrome"
-    
-    check_for_config_files
-    check_for_chromedriver
-    credentials = YAML.load_file(xunlei_credential_file_path)
-    engine = Xunlei::Engine.new(credentials[:username], credentials[:password], options.driver.downcase.to_sym)
-
-    File.open(xunlei_cookies_path, "w") do |file|
-      engine.dump_cookies.each do |line|
-        file.write(line)
-      end
-    end
-
-    yield(engine) if block_given?
-
-    engine.stop
+    execute_dump_action(args, options)
   end
 end
 
@@ -180,7 +185,7 @@ command :dump_tasks do |c|
   c.syntax= "dump_tasks"
   c.description = "dump all files to #{xunlei_tasks_path}"
   
-  do_dump_cookies(c) do |engine|
+  do_dump_cookies(c) do |engine, args|
     tasks = engine.dump_tasks
     
     current_downloaded_tasks = all_downloaded_tasks & tasks.map { |task| task[:name] }
@@ -203,6 +208,15 @@ command :dump_tasks do |c|
         puts task_name
       end
     end
+  end
+end
+
+command :add do |c|
+  c.syntax= "add KEYWORD"
+  c.description = "add new task(s)."
+  
+  do_dump_cookies(c) do |engine, args|
+    engine.add_task(args.first)
   end
 end
 
@@ -300,6 +314,25 @@ command :simplecd do |c|
     links = search.google_simplecd(args, options)
     puts
     puts "#{links.count} links found."
+  end
+end
+
+command :lucky do |c|
+  c.syntax = "lucky KEYWORD"
+  c.description = "search simplecd for ed2k links using given KEYWORD and create new tasks :)"
+  c.action do |args, options|
+    puts "Searching simplecd.org for '#{args.join(" ")}'..."
+    puts
+    search = Xunlei::Search.new
+    links = search.google_simplecd(args, options)
+    puts
+    puts "#{links.count} links found."
+    
+    execute_dump_action(args, options) do |engine, args|
+      links.each do |link|
+        engine.add_task(link)
+      end
+    end
   end
 end
 

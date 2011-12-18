@@ -41,6 +41,32 @@ module Xunlei
       all_files
     end
     
+    def add_task(target_address)
+      puts "Adding new task..."
+      # open('|pbcopy', 'w') { |io| io << target_address }
+      
+      @browser.execute_script("add_task_new(0)")
+      
+      @browser.text_field(:id => 'task_url').wait_until_present
+
+      # @browser.send_keys [:command, 'v']
+      @browser.execute_script("document.getElementById('task_url').value = '#{target_address}'")
+      
+      puts "Task URL = \"#{target_address}\""
+      expire_count = 0
+      sleep(2.0)
+      while !(@browser.button(:id => 'down_but').enabled? && expire_count <= 5000)
+        expire_count += 1
+      end
+      if expire_count <= 5000
+        print "Submitting... "
+        @browser.button(:id => 'down_but').when_present.click
+        puts "Done."
+      else
+        puts "Timed out, the button is unavailable."
+      end
+    end
+    
     def stop
       @browser.close
     end

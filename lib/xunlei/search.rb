@@ -36,7 +36,8 @@ module Xunlei
         doc = Nokogiri::HTML(@browser.html)
         doc.css("a").each do |link|
           next if link['href'].nil?
-          href = URI.escape(link['href'])
+          # href = URI.escape(link['href'])
+          href = link['href']
           if href =~ /ed2k:|magnet:/ && !ed2k_links.include?(href)
             puts href
             ed2k_links << href
