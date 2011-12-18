@@ -44,10 +44,10 @@ def execute_dump_action(args, options)
   engine.stop
 end
 
-def do_dump_cookies(c)
+def do_dump_cookies(c, &block)
   c.option "--driver DRIVER", String, "use a different webdriver (e.g. firefox). default is chrome"
   c.action do |args, options|
-    execute_dump_action(args, options)
+    execute_dump_action(args, options, &block)
   end
 end
 
