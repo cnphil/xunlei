@@ -39,10 +39,22 @@ Download files according to pattern in file names
 
     xunlei download --only matrix
     xunlei download --except bourne
+
+Add ed2k or magnet link as new task
+
+    xunlei add ed2k_or_magment_link
     
 Google for ed2k and magnet links
 
     xunlei google Repulsion --with 720p
+
+Search simplecd.org for ed2k links
+
+    xunlei simplecd Vendetta 720p
+
+I am feeling lucky :)
+
+    xunlei lucky KEYWORDS
 
 Pass --help to see more tasks and options
 
