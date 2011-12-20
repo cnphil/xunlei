@@ -12,6 +12,9 @@ module Xunlei
       @browser.text_field(:id => "p_show").when_present.set(password)
       @browser.button(:id => "button_submit4reg").when_present.click
 		puts "Logged in"
+		wait_until_all_loaded
+		puts "All loaded."
+		@browser.div(:id => "yun_tj").checkbox(:value => "").when_present.set
 	 end
     
     def dump_cookies
