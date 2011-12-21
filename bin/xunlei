@@ -336,6 +336,28 @@ command :lucky do |c|
   end
 end
 
+command :add_page do |c|
+  c.syntax = "add_page URL"
+  c.description = "add all ed2k and magnet links as new tasks on given web page :)"
+  c.option "--only PATTERN", String, "only add links which names include PATTERN"
+  c.option "--except PATTERN", String, "do not add links which names include PATTERN"
+  c.action do |args, options|
+    options.default :only => nil, :except => nil
+    puts "Adding page '#{args.first}'..."
+    puts
+    search = Xunlei::Search.new
+    links = search.add_page(args.first, options)
+    puts
+    puts "#{links.count} links found."
+    
+    execute_dump_action(args, options) do |engine, args|
+      links.each do |link|
+        engine.add_task(link)
+      end
+    end
+  end
+end
+
 alias_command :down, :download
 alias_command :dump, :dump_tasks
 alias_command :search, :google

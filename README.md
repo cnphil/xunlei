@@ -43,6 +43,10 @@ Download files according to pattern in file names
 Add ed2k or magnet link as new task
 
     xunlei add ed2k_or_magment_link
+
+Add all ed2k or magnet links on given web page as new tasks
+
+    xunlei add_page http://page_with_a_chunk_load_of_links/
     
 Google for ed2k and magnet links
 
