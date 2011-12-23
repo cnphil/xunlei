@@ -246,9 +246,7 @@ command :download do |c|
     else
       puts "\nAbout to download following files:"
       puts
-      files.each do |file|
-        puts file[:name]
-      end
+      show_files(files)
       
       if agree("\nConfirm? (yes or no)")
         files.each do |file|
