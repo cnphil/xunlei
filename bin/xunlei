@@ -202,7 +202,7 @@ command :dump_tasks do |c|
     puts
     
     unless current_downloaded_tasks.empty?
-      puts "Finished downloads: (you should delete them on website)"
+      puts "#{current_downloaded_tasks.count} finished downloads: (you should delete them on website)"
       puts
       current_downloaded_tasks.each do |task_name|
         puts task_name
