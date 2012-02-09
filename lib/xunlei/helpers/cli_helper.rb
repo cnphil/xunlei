@@ -82,7 +82,7 @@ module Xunlei
       end
 
       def xunlei_folder_exists?
-        Dir.exists?(xunlei_folder_path)
+        File.directory?(xunlei_folder_path)
       end
 
       def credential_file_exists?

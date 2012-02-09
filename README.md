@@ -13,6 +13,8 @@ so please make sure you have Google Chrome installed first.
 It can automatically dump task file names and urls as well as browser cookies,
 so that it can delegate to wget to download files for you.
 
+Compatible with Ruby version 1.8.7 and 1.9+
+
 WARNING:
 it stores your USERNAME and PASSWORD for
 lixian.vip.xunlei.com as PLAINTEXT at ~/.xunlei/credentials.yml
@@ -47,7 +49,7 @@ Add ed2k or magnet link as new task
 Add all ed2k or magnet links on given web page as new tasks
 
     xunlei add_page http://page_with_a_chunk_load_of_links/
-    
+
 Google for ed2k and magnet links
 
     xunlei google Repulsion --with 720p
