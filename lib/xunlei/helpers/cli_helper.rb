@@ -111,11 +111,11 @@ module Xunlei
           end
         end
       end
-    end
 
-    def check_for_config_files
-      create_xunlei_folder unless xunlei_folder_exists?
-      check_for_credentials
+      def check_for_config_files
+        create_xunlei_folder unless xunlei_folder_exists?
+        check_for_credentials
+      end
     end
   end
 end
