@@ -9,18 +9,6 @@ module Xunlei
       File.expand_path(xunlei_folder_name)
     end
 
-    def xunlei_folder_exists?
-      Dir.exists?(xunlei_folder_path)
-    end
-
-    def credential_file_exists?
-      File.exists?(xunlei_credential_file_path)
-    end
-
-    def create_xunlei_folder
-      Dir.mkdir(xunlei_folder_path)
-    end
-
     def xunlei_cookies_path
       File.join(xunlei_folder_path, "cookies.txt")
     end
@@ -40,7 +28,6 @@ module Xunlei
     def chromedriver_zip_name
       "chromedriver_mac.zip"
     end
-
   end
 
   Config = Configurator
