@@ -108,17 +108,15 @@ def move_to_downloaded_file(task)
 end
 
 def total_size(file_sizes)
-  total_megabytes = 0
-
-  file_sizes.each do |file_size|
-    if file_size =~ /G/
-      total_megabytes += 1000 * file_size.to_f
+  file_sizes.inject(0) do |total_megabytes, file_size|
+    if file_size =~ /G/i
+      total_megabytes + 1000 * file_size.to_f
+    elsif file_size =~ /M/i
+      total_megabytes + file_size.to_f
     else
-      total_megabytes += file_size.to_f
+      total_megabytes + 1
     end
   end
-
-  total_megabytes
 end
 
 def show_files(files)
