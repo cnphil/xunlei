@@ -1,33 +1,19 @@
 #!/usr/bin/env ruby
 
 require "xunlei"
-# require File.expand_path("lib/xunlei/version.rb")
-# require File.expand_path("lib/xunlei/engine.rb")
-# require File.expand_path("lib/xunlei/search.rb")
 require "yaml"
 require "commander/import"
+
+require "xunlei/helpers/cli_helper"
+include Xunlei::Helper::CLIHelper
 
 program :name, "Xunlei"
 program :version, Xunlei::VERSION
 program :description, "lixian.vip.xunlei.com utility script"
 
-def filter_files(options = nil)
-  files = []
-  YAML.load_file(xunlei_tasks_path).each do |file|
-    if !options.only.nil?
-      files << file if file[:name] =~ /#{options.only}/i
-    elsif !options.except.nil?
-      files << file unless file[:name] =~ /#{options.except}/i
-    else
-      files << file
-    end
-  end
-  files
-end
-
 def execute_dump_action(args, options)
   options.default :driver => "chrome"
-  
+
   check_for_config_files
   check_for_chromedriver
   credentials = YAML.load_file(xunlei_credential_file_path)
@@ -53,7 +39,7 @@ end
 
 def all_downloaded_tasks
   system("touch #{xunlei_downloaded_tasks_path}")
-  
+
   YAML.load_file(xunlei_downloaded_tasks_path) || []
 end
 
@@ -96,13 +82,13 @@ end
 def ask_for_credentials
   puts "#{xunlei_credential_file_path} not exists. Now creating one."
   puts "*** WARNING: your USERNAME and PASSWORD will be stored as PLAINTEXT at #{xunlei_credential_file_path} ***"
-    
+
   username = ask("Username: ")
   password = ask("Password: ") { |q| q.echo = "*" }
   File.open(xunlei_credential_file_path, "w") do |file|
     file.write({ :username => username, :password => password }.to_yaml)
   end
-  
+
   puts "#{xunlei_credential_file_path} successfully created."
 end
 
@@ -122,7 +108,7 @@ def check_for_chromedriver
         if system("unzip #{chromedriver_zip_name}")
           puts "moving chromedriver to /usr/local/bin ..."
           system("mv -v chromedriver /usr/local/bin")
-          
+
           puts "deleting temporary files..."
           system("rm -v #{chromedriver_zip_name}")
         else
@@ -144,13 +130,13 @@ end
 
 def move_to_downloaded_file(task)
   puts "#{task[:name]} successfully downloaded."
-  
+
   downloaded = all_downloaded_tasks
   downloaded << task[:name]
   File.open(xunlei_downloaded_tasks_path, "w") do |file|
     file.write(downloaded.to_yaml)
   end
-  
+
   all_tasks = YAML.load_file(xunlei_tasks_path)
   all_tasks.delete(task)
   File.open(xunlei_tasks_path, "w") do |file|
@@ -160,7 +146,7 @@ end
 
 def total_size(file_sizes)
   total_megabytes = 0
-  
+
   file_sizes.each do |file_size|
     if file_size =~ /G/
       total_megabytes += 1000 * file_size.to_f
@@ -168,7 +154,7 @@ def total_size(file_sizes)
       total_megabytes += file_size.to_f
     end
   end
-  
+
   total_megabytes
 end
 
@@ -176,7 +162,7 @@ def show_files(files)
   files.each do |file|
     puts "#{file[:size]}\t#{file[:name]}"
   end
-  
+
   puts
   puts "Total: #{files.size} files, #{total_size(files.map { |file| file[:size] })} MB (estimated)"
 end
@@ -184,23 +170,23 @@ end
 command :dump_tasks do |c|
   c.syntax= "dump_tasks"
   c.description = "dump all files to #{xunlei_tasks_path}"
-  
+
   do_dump_cookies(c) do |engine, args|
     tasks = engine.dump_tasks
-    
+
     current_downloaded_tasks = all_downloaded_tasks & tasks.map { |task| task[:name] }
     tasks.reject! { |task| current_downloaded_tasks.include?(task[:name]) }
-    
+
     File.open(xunlei_tasks_path, "w") do |file|
       file.write(tasks.to_yaml)
     end
-    
+
     puts "Successfully dumped following tasks:"
     puts
     show_files(tasks)
-    
+
     puts
-    
+
     unless current_downloaded_tasks.empty?
       puts "#{current_downloaded_tasks.count} finished downloads: (you should delete them on website)"
       puts
@@ -214,7 +200,7 @@ end
 command :add do |c|
   c.syntax= "add KEYWORD"
   c.description = "add new task(s)."
-  
+
   do_dump_cookies(c) do |engine, args|
     engine.add_task(args.first)
   end
@@ -223,7 +209,7 @@ end
 command :dump_cookies do |c|
   c.syntax = "dump_cookies"
   c.description = "dump cookies to #{xunlei_cookies_path}"
-  
+
   do_dump_cookies(c)
 end
 
@@ -233,21 +219,21 @@ command :download do |c|
   c.option "--only PATTERN", String, "only download files which names include PATTERN"
   c.option "--except PATTERN", String, "do not download files which names include PATTERN"
   c.option "--reverse", "download files in reverse order"
-  
+
   c.action do |args, options|
     options.default :only => nil, :except => nil
-    
-    files = filter_files(options)
-    
+
+    files = filter_files(YAML.load_file(xunlei_tasks_path), options)
+
     files.reverse! if options.reverse
-    
+
     if files.empty?
       puts "Nothing to do."
     else
       puts "\nAbout to download following files:"
       puts
       show_files(files)
-      
+
       if agree("\nConfirm? (yes or no)")
         files.each do |file|
           cmd = "wget --load-cookies=#{xunlei_cookies_path} '#{file[:url]}' -c -O \"#{file[:name]}\""
@@ -265,12 +251,12 @@ end
 command :show do |c|
   c.syntax = "show"
   c.description = "show files in #{xunlei_tasks_path}"
-  
+
   c.action do |args, options|
     options.default :only => nil, :except => nil
     puts "You have following files in your #{xunlei_tasks_path}:"
     puts
-    files = filter_files(options)
+    files = filter_files(YAML.load_file(xunlei_tasks_path), options)
     show_files(files)
   end
 end
@@ -325,7 +311,7 @@ command :lucky do |c|
     links = search.google_simplecd(args, options)
     puts
     puts "#{links.count} links found."
-    
+
     execute_dump_action(args, options) do |engine, args|
       links.each do |link|
         engine.add_task(link)
@@ -347,7 +333,7 @@ command :add_page do |c|
     links = search.add_page(args.first, options)
     puts
     puts "#{links.count} links found."
-    
+
     execute_dump_action(args, options) do |engine, args|
       links.each do |link|
         engine.add_task(link)
