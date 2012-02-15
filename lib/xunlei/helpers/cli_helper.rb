@@ -93,7 +93,7 @@ module Xunlei
         unless system("which chromedriver > /dev/null 2>&1")
           puts "chromedriver not found in your PATH"
           if agree("Would you like me to try download it for you? (yes or no)")
-            if system("wget 'http://chromium.googlecode.com/files/chromedriver_mac_16.0.902.0.zip' -O #{chromedriver_zip_name}")
+            if system("wget 'http://chromium.googlecode.com/files/chromedriver_mac_18.0.1022.0.zip' -O #{chromedriver_zip_name}")
               if system("unzip #{chromedriver_zip_name}")
                 puts "moving chromedriver to /usr/local/bin ..."
                 system("mv -v chromedriver /usr/local/bin")
