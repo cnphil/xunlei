@@ -43,7 +43,7 @@ module Xunlei
       q += "+-" + options.without unless options.without.nil?
       
       search_result = Nokogiri::HTML(open("#{prefix}#{q}") { |page| page.read })
-      page_links = search_result.css(".g h3 a").map { |a| a['href'] }[0, limit]
+      page_links = search_result.css(".g h3 a").map { |a| "http://www.google.com" + a['href'] }[0, limit]
       
       ed2k_links = []
       
