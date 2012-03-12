@@ -12,7 +12,7 @@ module Xunlei
 
       # temp fix for stupid cloud VOD popup
       wait_until_all_loaded
-      @browser.div(:class => "p_rw_pop p_sc_pop p_yuntips").p(:class => 'p_btm_aline').as.first.when_present.click
+      #@browser.div(:class => "p_rw_pop p_sc_pop p_yuntips").p(:class => 'p_btm_aline').as.first.when_present.click
     end
 
     def dump_cookies
@@ -89,6 +89,8 @@ module Xunlei
       return false unless next_li.present?
 
       next_li.as.first.click
+
+      wait_until_all_loaded
     end
 
     def process_current_page
