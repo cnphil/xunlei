@@ -1,3 +1,4 @@
+# encoding: utf-8
 require "watir-webdriver"
 
 module Xunlei
@@ -34,7 +35,8 @@ module Xunlei
     def dump_tasks
       all_files = []
 
-      begin
+      sleep 2
+	  begin
         all_files += process_current_page
       end while next_page
 
@@ -138,16 +140,35 @@ module Xunlei
       task_files = []
       task_div.a(:class => "rwbtn ic_open").when_present.click
 
-      folder_list = @browser.div(:id => "rwbox_bt_list")
-      folder_list.wait_until_present
+	  next_page_exists = false
+	  begin
+		folder_list = @browser.div(:id => "rwbox_bt_list")
+		folder_list.wait_until_present
 
-      index = 0
-      folder_list.spans(:class => "namelink").each do |span|
-        s = span.spans.first
-        size = folder_list.input(:id => "bt_size#{index}").attribute_value('value')
-        task_files << { :name => s.title, :url => s.attribute_value('href'), :size => size }
-        index += 1
-      end
+		index = 0
+		folder_list.spans(:class => "namelink").each do |span|
+		  s = span.spans.first
+		  size = folder_list.input(:id => "bt_size#{index}").attribute_value('value')
+		  task_files << { :name => s.title, :url => s.attribute_value('href'), :size => size }
+		  index += 1
+		end
+# to check if there is a next page
+		next_bt_link = @browser.a(:title => "下一页")
+		if(!next_bt_link.exists?)
+		  break
+		end
+		next_page_exists = next_bt_link.attribute_value("class") != "a_up"
+		@browser.execute_script(next_bt_link.attribute_value("onclick"))
+		time0 = Time.new
+		begin
+		  if(folder_list.spans(:class => "namelink").first.spans.first.title != @browser.div(:id => "rwbox_bt_list").spans(:class => "namelink").first.spans.first.title)
+		    break
+		  end
+		rescue
+		  break
+		end while(next_page_exists && Time.now - time0 < 5)
+		sleep 1
+	  end while next_page_exists
 
       go_back_from_bt_task
 
