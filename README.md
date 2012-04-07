@@ -65,3 +65,17 @@ I am feeling lucky :)
 Pass --help to see more tasks and options
 
     xunlei --help
+
+Contributors:
+-----------
+
+Thanks following wonderful people for contributing to this project:
+
+[@phil5](https://github.com/phil5)
+
+Miscellaneous:
+-----------
+
+You might be also interested in this project:
+
+Command line interface to linkz.im: [linkz_cli](https://github.com/forresty/linkz_cli)
