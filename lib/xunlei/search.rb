@@ -1,39 +1,60 @@
-require "watir-webdriver"
 require "Nokogiri"
 require "uri"
+require "open-uri"
 
 module Xunlei
   class Search
     def initialize(driver = :chrome)
-      @browser = Watir::Browser.new driver
     end
     
     def google(keywords, options)
+      do_google(keywords, options, "http://www.google.com/search?q=", 10)
+    end
+    
+    def google_simplecd(keywords, options)
+      do_google(keywords, options, "http://www.google.com/search?q=site:simplecd.org+", 1)
+    end
+    
+    def add_page(page_url, options)
+      doc = Nokogiri::HTML(open(page_url) { |page| page.read })
+      links = []
+      
+      doc.css("a").select do |a|
+        !a['href'].nil? && a['href'] =~ /ed2k:|magnet:/
+      end.map do |a|
+        a['href']
+      end.uniq.each do |link|
+        if !options.only.nil?
+          links << link if link =~ /#{options.only}/i
+        elsif !options.except.nil?
+          links << link unless link =~ /#{options.except}/i
+        else
+          links << link
+        end
+      end
+      links.each { |link| puts link }
+      links
+    end
+    
+  private
+  
+    def do_google(keywords, options, prefix, limit)
       q = [keywords, options.with, "ed2k"].flatten.join("+")
       q += "+-" + options.without unless options.without.nil?
       
-      @browser.goto "http://www.google.com/search?q=#{q}"
-      
-      @browser.div(:id => "ires").wait_until_present
-      
-      page_links = []
-      @browser.lis(:class => "g").each { |li| page_links << li.as.first.href }
+      search_result = Nokogiri::HTML(open("#{prefix}#{q}") { |page| page.read })
+      page_links = search_result.css(".g h3 a").map { |a| "http://www.google.com" + a['href'] }[0, limit]
       
       ed2k_links = []
-      page_links.each do |page_link|
-        @browser.goto page_link
-        doc = Nokogiri::HTML(@browser.html)
-        doc.css("a").each do |link|
-          next if link['href'].nil?
-          href = URI.escape(link['href'])
-          if href =~ /ed2k:|magnet:/ && !ed2k_links.include?(href)
-            puts href
-            ed2k_links << href
-          end
-        end
-      end
       
-      @browser.close
+      page_links.each do |page_link|
+        doc = Nokogiri::HTML(open(page_link) { |page| page.read })
+        ed2k_links += doc.css("a").select do |a|
+          !a['href'].nil? && a['href'] =~ /ed2k:|magnet:/
+        end.map do |a|
+          a['href'].tap { |a| puts a }
+        end.uniq
+      end
       
       ed2k_links
     end
