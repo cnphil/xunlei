@@ -88,13 +88,15 @@ command :download do |c|
   c.option "--only PATTERN", String, "only download files which names include PATTERN"
   c.option "--except PATTERN", String, "do not download files which names include PATTERN"
   c.option "--reverse", "download files in reverse order"
+  c.option '--limit NUM', Integer, 'limit the number of files to download'
 
   c.action do |args, options|
-    options.default :only => nil, :except => nil
+    options.default :only => nil, :except => nil, :limit => 65535
 
     files = filter_files(YAML.load_file(xunlei_tasks_path), options)
 
     files.reverse! if options.reverse
+    files = files[0, options.limit]
 
     if files.empty?
       puts "Nothing to do."
