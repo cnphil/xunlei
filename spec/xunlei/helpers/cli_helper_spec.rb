@@ -13,7 +13,7 @@ describe Xunlei::Helper::CLIHelper do
 
   describe "filtered?" do
     before(:each) do
-      @file = { :name => "MatRiX" }
+      @file = "MatRiX"
     end
 
     it "should have a filtered? method" do

@@ -2,6 +2,8 @@
 
 require "xunlei"
 require "commander/import"
+require "nokogiri"
+require "open-uri"
 
 require "xunlei/helpers/cli_helper"
 include Xunlei::Helper::CLIHelper
@@ -140,6 +142,12 @@ command :config do |c|
   end
 end
 
+def find_links_in_page(page_url, options)
+  doc = Nokogiri::HTML(open(page_url) { |p| p.read })
+  links = doc.css("a").select { |a| !a['href'].nil? && a['href'] =~ /ed2k:|magnet:/ }.map { |a| a['href'] }
+  filter_names(links, options).tap { |links| links.map { |l| puts l } }
+end
+
 command :add_page do |c|
   c.syntax = "add_page URL"
   c.description = "add all ed2k and magnet links as new tasks on given web page :)"
@@ -149,14 +157,15 @@ command :add_page do |c|
     options.default :only => nil, :except => nil
     puts "Adding page '#{args.first}'..."
     puts
-    search = Xunlei::Search.new
-    links = search.add_page(args.first, options)
+    links = find_links_in_page(args.first, options)
     puts
     puts "#{links.count} links found."
 
-    execute_dump_action(args, options) do |engine, args|
-      links.each do |link|
-        engine.add_task(link)
+    if links.count > 0
+      execute_dump_action(args, options) do |engine, args|
+        links.each do |link|
+          engine.add_task(link)
+        end
       end
     end
   end
