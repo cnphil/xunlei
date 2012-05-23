@@ -11,25 +11,14 @@ module Xunlei
       @browser.text_field(:id => "p_show").when_present.set(password)
       @browser.button(:id => "button_submit4reg").when_present.click
 
-      # temp fix for stupid cloud VOD popup
       wait_until_all_loaded
-      #@browser.div(:class => "p_rw_pop p_sc_pop p_yuntips").p(:class => 'p_btm_aline').as.first.when_present.click
     end
 
+    require "xunlei/helpers/cookie_helper"
+    include ::Xunlei::Helper::CookieHelper
     def dump_cookies
       wait_until_all_loaded
-
-      cookies = []
-      @browser.driver.manage.all_cookies.each do |cookie|
-        domain = cookie[:domain]
-        path = cookie[:path]
-        expires = cookie[:expires] ? cookie[:expires].strftime("%s") : "0"
-        name = cookie[:name]
-        value = cookie[:value]
-        cookies << "#{domain}\tTRUE\t#{path}\tFALSE\t#{expires}\t#{name}\t#{value}\n"
-      end
-
-      cookies
+      @browser.driver.manage.all_cookies.inject([]) { |all_cookies, c| all_cookies << dump_cookie(c) }
     end
 
     def dump_tasks
@@ -45,13 +34,11 @@ module Xunlei
 
     def add_task(target_address)
       puts "Adding new task..."
-      # open('|pbcopy', 'w') { |io| io << target_address }
 
       @browser.execute_script("add_task_new(0)")
 
       @browser.text_field(:id => 'task_url').wait_until_present
 
-      # @browser.send_keys [:command, 'v']
       @browser.execute_script("document.getElementById('task_url').value = '#{target_address}'")
 
       puts "Task URL = \"#{target_address}\""
