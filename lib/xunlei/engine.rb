@@ -27,20 +27,14 @@ module Xunlei
     end
 
     def add_task(target_address)
-
       @browser.execute_script("add_task_new(0)")
       @browser.text_field(:id => 'task_url').wait_until_present
       @browser.execute_script("document.getElementById('task_url').value = '#{target_address}'")
 
-      expire_count = 0
-      sleep(2.0)
-      while !(@browser.button(:id => 'down_but').enabled? && expire_count <= 5000)
-        expire_count += 1
-      end
-      if expire_count <= 5000
+      if added_successfully?
         @browser.button(:id => 'down_but').when_present.click
       else
-        # puts "Timed out, the button is unavailable."
+        puts "Operation timed out."
       end
     end
 
@@ -49,6 +43,14 @@ module Xunlei
     end
 
     private
+
+    def added_successfully?
+      10.times do
+        sleep 1
+        return true if @browser.button(:id => 'down_but').enabled?
+      end
+      false
+    end
 
     def signin(username, password)
       @browser.text_field(:id => "u").when_present.set(username)
@@ -134,7 +136,7 @@ module Xunlei
 
         index = 0
         folder_list.spans(:class => "namelink").each do |span|
-          s = span.spans.first
+          s = span.span
           size = folder_list.input(:id => "bt_size#{index}").attribute_value('value')
           task_files << { :name => s.title, :url => s.attribute_value('href'), :size => size }
           index += 1
