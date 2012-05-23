@@ -6,11 +6,7 @@ module Xunlei
     def initialize(username, password, driver = :chrome)
       @browser = Watir::Browser.new driver
       @browser.goto "http://lixian.vip.xunlei.com"
-
-      @browser.text_field(:id => "u").when_present.set(username)
-      @browser.text_field(:id => "p_show").when_present.set(password)
-      @browser.button(:id => "button_submit4reg").when_present.click
-
+      signin(username, password)
       wait_until_all_loaded
     end
 
@@ -58,7 +54,13 @@ module Xunlei
       @browser.close
     end
 
-  private
+    private
+
+    def signin(username, password)
+      @browser.text_field(:id => "u").when_present.set(username)
+      @browser.text_field(:id => "p_show").when_present.set(password)
+      @browser.button(:id => "button_submit4reg").when_present.click
+    end
 
     def wait_until_all_loaded
       get_task_list
@@ -81,39 +83,53 @@ module Xunlei
       get_task_list.divs(:class => "rw_inter").inject([]) { |result, div| result += process_task(div) }
     end
 
+    def bt_task?(task_div)
+      task_div.div(:class => "w03img").img.src == "http://cloud.vip.xunlei.com/160/img/icon_type/tpimg_bt.png"
+    end
+
+    def expand_task_div!(task_div)
+      task_div.click
+      task_div.a(:class => "rwbtn ic_redownloca").wait_until_present
+    end
+
+    def wait_till_task_loaded(task_div)
+      task_div.wait_until_present
+      @browser.execute_script("document.getElementById('#{task_div.parent.id}').scrollIntoView()")
+    end
+
+    # def task_div(task_id)
+    #   @browser.div(:id => "tr_c#{task_id}").div(:class => "rw_inter")
+    # end
+
     def process_task(task_div)
+      wait_till_task_loaded task_div
+
       task_files = []
 
-      task_div.wait_until_present
+      if task_ready?(task_div)
+        expand_task_div!(task_div)
 
-      @browser.execute_script("document.getElementById('#{task_div.parent.id}').scrollIntoView()")
-
-      if task_is_ready?(task_div)
-        # puts "task is ready"
-        task_div.click
-        task_div.a(:class => "rwbtn ic_redownloca").wait_until_present
-
-        if task_div.div(:class => "w03img").imgs.first.src == "http://cloud.vip.xunlei.com/160/img/icon_type/tpimg_bt.png"
+        if bt_task?(task_div)
           task_files += process_bt_task(task_div)
         else
           task_files << process_normal_task(task_div)
         end
-      else
-        # still downloading
       end
 
       task_files
     end
 
-    def task_is_ready?(task_div)
+    def task_ready?(task_div)
       task_div.em(:class => "loadnum").text == "100%"
     end
 
     def process_normal_task(task_div)
-      normal_task_a = task_div.span(:class => "namelink").as.first
       task_id = task_div.parent.id.gsub(/\D+/, "")
-      normal_task_input = task_div.input(:id => "dl_url" + task_id)
-      { :name => normal_task_a.text.gsub(/'|\\/,""), :url => normal_task_input.value, :size => task_div.span(:id => "size#{task_id}").text }
+      {
+        :name => task_div.span(:class => "namelink").as.first.text.gsub(/'|\\/,""),
+        :url => task_div.input(:id => "dl_url" + task_id).value,
+        :size => task_div.span(:id => "size#{task_id}").text
+      }
     end
 
     def process_bt_task(task_div)
