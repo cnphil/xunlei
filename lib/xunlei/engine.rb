@@ -126,7 +126,7 @@ module Xunlei
     end
 
     def dump_bt_task
-      task_div.a(:class => "rwbtn ic_open").when_present.click
+      enter_bt_task!
 
       task_files = bt_dump_current_page
 
@@ -173,6 +173,10 @@ module Xunlei
         return if @browser.as(:class => 'palink').map(&:text).map(&:to_i).include?(current_page)
       end
       raise "BT task timed out when trying to fetch next page"
+    end
+
+    def enter_bt_task!
+      task_div.a(:class => "rwbtn ic_open").when_present.click
     end
 
     def go_back_from_bt_task!
