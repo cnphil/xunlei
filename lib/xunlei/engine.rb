@@ -22,13 +22,11 @@ module Xunlei
     end
 
     def dump_tasks
-      all_files = []
-
-      sleep 2
-      begin
-        all_files += process_current_page
-      end while next_page
-
+      all_files = dump_current_page
+      while next_page?
+        next_page!
+        all_files += dump_current_page
+      end
       all_files
     end
 
@@ -67,25 +65,20 @@ module Xunlei
     end
 
     def get_task_list
-      task_list = @browser.div(:id => "rowbox_list")
-      task_list.wait_until_present
-      task_list
+      @browser.div(:id => "rowbox_list").tap { |list| list.wait_until_present }
     end
 
-    def next_page
-      next_li = @browser.li(:class => "next")
+    def next_page?
+      @browser.li(:class => "next").present?
+    end
 
-      return false unless next_li.present?
-
-      next_li.as.first.click
-
+    def next_page!
+      @browser.li(:class => "next").as.first.click
       wait_until_all_loaded
     end
 
-    def process_current_page
-      get_task_list.divs(:class => "rw_inter").inject([]) do |all_files, task_div|
-        all_files += process_task(task_div)
-      end
+    def dump_current_page
+      get_task_list.divs(:class => "rw_inter").inject([]) { |result, div| result += process_task(div) }
     end
 
     def process_task(task_div)
@@ -156,12 +149,12 @@ module Xunlei
         sleep 1
       end while next_page_exists
 
-      go_back_from_bt_task
+      go_back_from_bt_task!
 
       task_files
     end
 
-    def go_back_from_bt_task
+    def go_back_from_bt_task!
       back_div = @browser.div(:id => "view_bt_list_nav")
       back_div.wait_until_present
       back_div.lis(:class => "main_link main_linksub").first.a(:class => "btn_m").click
