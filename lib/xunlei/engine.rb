@@ -14,7 +14,7 @@ module Xunlei
     include ::Xunlei::Helper::CookieHelper
     def dump_cookies
       wait_till_all_loaded
-      @browser.driver.manage.all_cookies.inject([]) { |all_cookies, c| all_cookies << dump_cookie(c) }
+      @browser.driver.manage.all_cookies.inject([]) { |all_cookies, c| all_cookies << format_cookie(c) }
     end
 
     def dump_tasks

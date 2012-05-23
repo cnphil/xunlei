@@ -5,8 +5,8 @@ module Xunlei
     describe CookieHelper do
       let(:helper) { Class.new { include CookieHelper }.new }
 
-      describe "dump_cookie" do
-        it "should dump_cookie" do
+      describe "format_cookie" do
+        it "should format_cookie" do
           expected = ".vip.xunlei.com\tTRUE\t/\tFALSE\t0\tlx_referfrom\t\n"
           cookie_hash = {
             :name => "lx_referfrom",
@@ -17,7 +17,7 @@ module Xunlei
             :secure => false
           }
 
-          helper.dump_cookie(cookie_hash).should == expected
+          helper.format_cookie(cookie_hash).should == expected
         end
       end
     end
