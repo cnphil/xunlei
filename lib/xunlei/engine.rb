@@ -7,13 +7,13 @@ module Xunlei
       @browser = Watir::Browser.new driver
       @browser.goto "http://lixian.vip.xunlei.com"
       signin(username, password)
-      wait_until_all_loaded
+      wait_till_all_loaded
     end
 
     require "xunlei/helpers/cookie_helper"
     include ::Xunlei::Helper::CookieHelper
     def dump_cookies
-      wait_until_all_loaded
+      wait_till_all_loaded
       @browser.driver.manage.all_cookies.inject([]) { |all_cookies, c| all_cookies << dump_cookie(c) }
     end
 
@@ -27,26 +27,20 @@ module Xunlei
     end
 
     def add_task(target_address)
-      puts "Adding new task..."
 
       @browser.execute_script("add_task_new(0)")
-
       @browser.text_field(:id => 'task_url').wait_until_present
-
       @browser.execute_script("document.getElementById('task_url').value = '#{target_address}'")
 
-      puts "Task URL = \"#{target_address}\""
       expire_count = 0
       sleep(2.0)
       while !(@browser.button(:id => 'down_but').enabled? && expire_count <= 5000)
         expire_count += 1
       end
       if expire_count <= 5000
-        print "Submitting... "
         @browser.button(:id => 'down_but').when_present.click
-        puts "Done."
       else
-        puts "Timed out, the button is unavailable."
+        # puts "Timed out, the button is unavailable."
       end
     end
 
@@ -62,7 +56,7 @@ module Xunlei
       @browser.button(:id => "button_submit4reg").when_present.click
     end
 
-    def wait_until_all_loaded
+    def wait_till_all_loaded
       get_task_list
     end
 
@@ -75,64 +69,61 @@ module Xunlei
     end
 
     def next_page!
-      @browser.li(:class => "next").as.first.click
-      wait_until_all_loaded
+      @browser.li(:class => "next").a.click
+      wait_till_all_loaded
     end
 
     def dump_current_page
-      get_task_list.divs(:class => "rw_inter").inject([]) { |result, div| result += process_task(div) }
+      get_task_list.divs(:class => "rw_inter").inject([]) do |result, div|
+        @current_task_id = div.parent.id.gsub(/\D+/, "")
+        result += dump_task
+      end
     end
 
-    def bt_task?(task_div)
+    def bt_task?
       task_div.div(:class => "w03img").img.src == "http://cloud.vip.xunlei.com/160/img/icon_type/tpimg_bt.png"
     end
 
-    def expand_task_div!(task_div)
+    def expand_task_div!
       task_div.click
       task_div.a(:class => "rwbtn ic_redownloca").wait_until_present
     end
 
-    def wait_till_task_loaded(task_div)
+    def wait_till_task_loaded
       task_div.wait_until_present
       @browser.execute_script("document.getElementById('#{task_div.parent.id}').scrollIntoView()")
     end
 
-    # def task_div(task_id)
-    #   @browser.div(:id => "tr_c#{task_id}").div(:class => "rw_inter")
-    # end
-
-    def process_task(task_div)
-      wait_till_task_loaded task_div
-
-      task_files = []
-
-      if task_ready?(task_div)
-        expand_task_div!(task_div)
-
-        if bt_task?(task_div)
-          task_files += process_bt_task(task_div)
-        else
-          task_files << process_normal_task(task_div)
-        end
-      end
-
-      task_files
+    def task_div
+      @browser.div(:id => "tr_c#{@current_task_id}").div(:class => "rw_inter")
     end
 
-    def task_ready?(task_div)
+    def dump_task
+      return [] unless task_finished?
+
+      expand_task_div!
+
+      if bt_task?
+        dump_bt_task
+      else
+        dump_normal_task
+      end
+    end
+
+    def task_finished?
+      wait_till_task_loaded
       task_div.em(:class => "loadnum").text == "100%"
     end
 
-    def process_normal_task(task_div)
-      task_id = task_div.parent.id.gsub(/\D+/, "")
-      {
+    def dump_normal_task
+      [{
         :name => task_div.span(:class => "namelink").as.first.text.gsub(/'|\\/,""),
-        :url => task_div.input(:id => "dl_url" + task_id).value,
-        :size => task_div.span(:id => "size#{task_id}").text
-      }
+        :url => task_div.input(:id => "dl_url" + @current_task_id).value,
+        :size => task_div.span(:id => "size#{@current_task_id}").text
+      }]
     end
 
-    def process_bt_task(task_div)
+    def dump_bt_task
       task_files = []
       task_div.a(:class => "rwbtn ic_open").when_present.click
 
@@ -156,7 +147,7 @@ module Xunlei
         @browser.execute_script next_bt_link.attribute_value("onclick")
         time0 = Time.new
         begin
-          if folder_list.spans(:class => "namelink").first.spans.first.title != @browser.div(:id => "rwbox_bt_list").spans(:class => "namelink").first.spans.first.title
+          if folder_list.span(:class => "namelink").span.title != @browser.div(:id => "rwbox_bt_list").span(:class => "namelink").span.title
             break
           end
         rescue
@@ -171,9 +162,10 @@ module Xunlei
     end
 
     def go_back_from_bt_task!
-      back_div = @browser.div(:id => "view_bt_list_nav")
-      back_div.wait_until_present
-      back_div.lis(:class => "main_link main_linksub").first.a(:class => "btn_m").click
+      @browser.div(:id => "view_bt_list_nav").tap do |back_div|
+        back_div.wait_until_present
+        back_div.li(:class => "main_link main_linksub").a(:class => "btn_m").click
+      end
     end
   end
 end
