@@ -126,41 +126,53 @@ module Xunlei
     end
 
     def dump_bt_task
-      task_files = []
       task_div.a(:class => "rwbtn ic_open").when_present.click
 
-      next_page_exists = false
-      begin
-        folder_list = @browser.div(:id => "rwbox_bt_list")
-        folder_list.wait_until_present
+      task_files = bt_dump_current_page
 
-        index = 0
-        folder_list.spans(:class => "namelink").each do |span|
-          s = span.span
-          size = folder_list.input(:id => "bt_size#{index}").attribute_value('value')
-          task_files << { :name => s.title, :url => s.attribute_value('href'), :size => size }
-          index += 1
-        end
-        # to check if there is a next page
-        next_bt_link = @browser.a(:title => "下一页")
-        break unless next_bt_link.exists?
-
-        next_page_exists = next_bt_link.attribute_value("class") != "a_up"
-        @browser.execute_script next_bt_link.attribute_value("onclick")
-        time0 = Time.new
-        begin
-          if folder_list.span(:class => "namelink").span.title != @browser.div(:id => "rwbox_bt_list").span(:class => "namelink").span.title
-            break
-          end
-        rescue
-          break
-        end while next_page_exists && Time.now - time0 < 5
-        sleep 1
-      end while next_page_exists
+      (1...bt_num_pages).each do |current_page|
+        bt_next_page!(current_page)
+        task_files += bt_dump_current_page
+      end
 
       go_back_from_bt_task!
 
       task_files
+    end
+
+    def bt_folder_list
+      @browser.div(:id => "rwbox_bt_list").tap { |folder_list| folder_list.wait_until_present }
+    end
+
+    def bt_dump_current_page
+      task_files = []
+
+      bt_folder_list.spans(:class => "namelink").each_with_index do |s, index|
+        size = bt_folder_list.input(:id => "bt_size#{index}").attribute_value('value')
+        task_files << { :name => s.span.title, :url => s.span.attribute_value('href'), :size => size }
+      end
+      task_files
+    end
+
+    def bt_next_page_link
+      @browser.a(:title => "下一页")
+    end
+
+    def bt_num_pages
+      bt_next_page_link.exists? ? @browser.as(:class => 'palink').map(&:text).last.to_i : 1
+    end
+
+    def bt_next_page!(current_page)
+      bt_next_page_link.click
+      wait_till_bt_next_page_loaded(current_page)
+    end
+
+    def wait_till_bt_next_page_loaded(current_page)
+      20.times do
+        sleep 0.5
+        return if @browser.as(:class => 'palink').map(&:text).map(&:to_i).include?(current_page)
+      end
+      raise "BT task timed out when trying to fetch next page"
     end
 
     def go_back_from_bt_task!
