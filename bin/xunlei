@@ -140,57 +140,6 @@ command :config do |c|
   end
 end
 
-command :google do |c|
-  c.syntax = "google KEYWORD"
-  c.description = "google for ed2k links using given KEYWORD"
-  c.option "--with WORDS", String, "include additional info when Googling"
-  c.option "--without WORDS", String, "exclude additional info when Googling"
-  c.action do |args, options|
-    options.default :with => nil, :without => nil
-    puts "Searching the web for '#{args.join(" ")}'..."
-    puts
-    search = Xunlei::Search.new
-    links = search.google(args, options)
-    puts
-    puts "#{links.count} links found."
-  end
-end
-
-command :simplecd do |c|
-  c.syntax = "simplecd KEYWORD"
-  c.description = "search simplecd for ed2k links using given KEYWORD"
-  c.option "--with WORDS", String, "include additional info when searching"
-  c.option "--without WORDS", String, "exclude additional info when searching"
-  c.action do |args, options|
-    options.default :with => nil, :without => nil
-    puts "Searching simplecd.org for '#{args.join(" ")}'..."
-    puts
-    search = Xunlei::Search.new
-    links = search.google_simplecd(args, options)
-    puts
-    puts "#{links.count} links found."
-  end
-end
-
-command :lucky do |c|
-  c.syntax = "lucky KEYWORD"
-  c.description = "search simplecd for ed2k links using given KEYWORD and create new tasks :)"
-  c.action do |args, options|
-    puts "Searching simplecd.org for '#{args.join(" ")}'..."
-    puts
-    search = Xunlei::Search.new
-    links = search.google_simplecd(args, options)
-    puts
-    puts "#{links.count} links found."
-
-    execute_dump_action(args, options) do |engine, args|
-      links.each do |link|
-        engine.add_task(link)
-      end
-    end
-  end
-end
-
 command :add_page do |c|
   c.syntax = "add_page URL"
   c.description = "add all ed2k and magnet links as new tasks on given web page :)"
@@ -215,5 +164,3 @@ end
 
 alias_command :down, :download
 alias_command :dump, :dump_tasks
-alias_command :search, :google
-alias_command :scd, :simplecd

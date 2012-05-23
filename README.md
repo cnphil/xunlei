@@ -50,18 +50,6 @@ Add all ed2k or magnet links on given web page as new tasks
 
     xunlei add_page http://page_with_a_chunk_load_of_links/
 
-Google for ed2k and magnet links
-
-    xunlei google Repulsion --with 720p
-
-Search simplecd.org for ed2k links
-
-    xunlei simplecd Vendetta 720p
-
-I am feeling lucky :)
-
-    xunlei lucky KEYWORDS
-
 Pass --help to see more tasks and options
 
     xunlei --help
