@@ -54,8 +54,9 @@ module Xunlei
 
     def signin(username, password)
       @browser.text_field(:id => "u").when_present.set(username)
+      @browser.text_field(:id => "p_show_err").click
       @browser.text_field(:id => "p_show").when_present.set(password)
-      @browser.button(:id => "button_submit4reg").when_present.click
+      @browser.a(:id => "button_submit4reg").click
     end
 
     def wait_till_all_loaded
@@ -114,7 +115,7 @@ module Xunlei
 
     def task_finished?
       wait_till_task_loaded
-      task_div.em(:class => "loadnum").text == "100%"
+      task_div.em(:class => "loadnum").text == "100%" rescue false
     end
 
     def dump_normal_task
