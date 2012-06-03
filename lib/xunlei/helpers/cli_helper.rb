@@ -6,15 +6,19 @@ module Xunlei
       require "xunlei/configurator"
       include ::Xunlei::Config
 
-      def filtered?(file, options)
+      def filtered?(name, options)
         return false unless options
-        return true if !options.only.nil? and !(file[:name] =~ /#{options.only}/i)
-        return true if !options.except.nil? and file[:name] =~ /#{options.except}/i
+        return true if !options.only.nil? and !(name =~ /#{options.only}/i)
+        return true if !options.except.nil? and name =~ /#{options.except}/i
         false
       end
 
       def filter_files(files, options=nil)
-        files.select{ |file| !filtered?(file, options) }.inject([], :<<)
+        files.select { |file| !filtered?(file[:name], options) }.inject([], :<<)
+      end
+
+      def filter_names(names, options=nil)
+        names.select { |name| !filtered?(name, options) }.inject([], :<<)
       end
 
       def total_size(file_sizes)

@@ -2,6 +2,8 @@
 
 require "xunlei"
 require "commander/import"
+require "nokogiri"
+require "open-uri"
 
 require "xunlei/helpers/cli_helper"
 include Xunlei::Helper::CLIHelper
@@ -88,13 +90,15 @@ command :download do |c|
   c.option "--only PATTERN", String, "only download files which names include PATTERN"
   c.option "--except PATTERN", String, "do not download files which names include PATTERN"
   c.option "--reverse", "download files in reverse order"
+  c.option '--limit NUM', Integer, 'limit the number of files to download'
 
   c.action do |args, options|
-    options.default :only => nil, :except => nil
+    options.default :only => nil, :except => nil, :limit => 65535
 
     files = filter_files(YAML.load_file(xunlei_tasks_path), options)
 
     files.reverse! if options.reverse
+    files = files[0, options.limit]
 
     if files.empty?
       puts "Nothing to do."
@@ -138,55 +142,10 @@ command :config do |c|
   end
 end
 
-command :google do |c|
-  c.syntax = "google KEYWORD"
-  c.description = "google for ed2k links using given KEYWORD"
-  c.option "--with WORDS", String, "include additional info when Googling"
-  c.option "--without WORDS", String, "exclude additional info when Googling"
-  c.action do |args, options|
-    options.default :with => nil, :without => nil
-    puts "Searching the web for '#{args.join(" ")}'..."
-    puts
-    search = Xunlei::Search.new
-    links = search.google(args, options)
-    puts
-    puts "#{links.count} links found."
-  end
-end
-
-command :simplecd do |c|
-  c.syntax = "simplecd KEYWORD"
-  c.description = "search simplecd for ed2k links using given KEYWORD"
-  c.option "--with WORDS", String, "include additional info when searching"
-  c.option "--without WORDS", String, "exclude additional info when searching"
-  c.action do |args, options|
-    options.default :with => nil, :without => nil
-    puts "Searching simplecd.org for '#{args.join(" ")}'..."
-    puts
-    search = Xunlei::Search.new
-    links = search.google_simplecd(args, options)
-    puts
-    puts "#{links.count} links found."
-  end
-end
-
-command :lucky do |c|
-  c.syntax = "lucky KEYWORD"
-  c.description = "search simplecd for ed2k links using given KEYWORD and create new tasks :)"
-  c.action do |args, options|
-    puts "Searching simplecd.org for '#{args.join(" ")}'..."
-    puts
-    search = Xunlei::Search.new
-    links = search.google_simplecd(args, options)
-    puts
-    puts "#{links.count} links found."
-
-    execute_dump_action(args, options) do |engine, args|
-      links.each do |link|
-        engine.add_task(link)
-      end
-    end
-  end
+def find_links_in_page(page_url, options)
+  doc = Nokogiri::HTML(open(page_url) { |p| p.read })
+  links = doc.css("a").select { |a| !a['href'].nil? && a['href'] =~ /ed2k:|magnet:/ }.map { |a| a['href'] }
+  filter_names(links, options).tap { |links| links.map { |l| puts l } }
 end
 
 command :add_page do |c|
@@ -198,14 +157,15 @@ command :add_page do |c|
     options.default :only => nil, :except => nil
     puts "Adding page '#{args.first}'..."
     puts
-    search = Xunlei::Search.new
-    links = search.add_page(args.first, options)
+    links = find_links_in_page(args.first, options)
     puts
     puts "#{links.count} links found."
 
-    execute_dump_action(args, options) do |engine, args|
-      links.each do |link|
-        engine.add_task(link)
+    if links.count > 0
+      execute_dump_action(args, options) do |engine, args|
+        links.each do |link|
+          engine.add_task(link)
+        end
       end
     end
   end
@@ -213,5 +173,3 @@ end
 
 alias_command :down, :download
 alias_command :dump, :dump_tasks
-alias_command :search, :google
-alias_command :scd, :simplecd

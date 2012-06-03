@@ -13,7 +13,7 @@ describe Xunlei::Helper::CLIHelper do
 
   describe "filtered?" do
     before(:each) do
-      @file = { :name => "MatRiX" }
+      @file = "MatRiX"
     end
 
     it "should have a filtered? method" do
@@ -48,7 +48,7 @@ describe Xunlei::Helper::CLIHelper do
     it "should have a total_size method" do
       @main.should respond_to(:total_size)
     end
-    
+
     it "should calculate total size correctly" do
       @main.total_size(%w{1.1G 300M 512K}).should == 1.1 * 1000 + 300 + 1
     end

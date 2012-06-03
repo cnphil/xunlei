@@ -6,6 +6,8 @@ lixian.vip.xunlei.com utility script for Mac OS X users
 Summary:
 -----------
 
+[![Build Status](https://secure.travis-ci.org/forresty/xunlei.png?branch=master)](http://travis-ci.org/forresty/xunlei)
+
 This is a browser script for lixian.vip.xunlei.com.
 It drives Google Chrome with [chromedriver](http://code.google.com/p/selenium/wiki/ChromeDriver) to do automation tasks for you,
 so please make sure you have Google Chrome installed first.
@@ -50,18 +52,20 @@ Add all ed2k or magnet links on given web page as new tasks
 
     xunlei add_page http://page_with_a_chunk_load_of_links/
 
-Google for ed2k and magnet links
-
-    xunlei google Repulsion --with 720p
-
-Search simplecd.org for ed2k links
-
-    xunlei simplecd Vendetta 720p
-
-I am feeling lucky :)
-
-    xunlei lucky KEYWORDS
-
 Pass --help to see more tasks and options
 
     xunlei --help
+
+Contributors:
+-----------
+
+Thanks following wonderful people for contributing to this project:
+
+[@phil5](https://github.com/phil5)
+
+Miscellaneous:
+-----------
+
+You might be also interested in this project:
+
+Command line interface to linkz.im: [linkz_cli](https://github.com/forresty/linkz_cli)
